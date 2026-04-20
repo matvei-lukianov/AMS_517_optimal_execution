@@ -537,8 +537,14 @@
 \end{frame}
 
 \begin{frame}{Out-of-Sample Results — 112 Stocks, 42,890 Episodes}
+  \footnotesize
+  \textbf{Cost} = shortfall vs perfect execution at initial mid-price, in basis points:
+  $\displaystyle\text{cost} = \frac{Q\cdot p_0^{\text{mid}} - \text{cash received}}{Q\cdot p_0^{\text{mid}}}\times 10^4$
+  \quad Higher = worse.
+
+  \smallskip
   \begin{center}
-  \renewcommand{\arraystretch}{1.5}
+  \renewcommand{\arraystretch}{1.4}
   \begin{tabular}{lrrrr}
     \toprule
     \textbf{Metric}

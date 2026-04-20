@@ -219,18 +219,14 @@
 
 \begin{frame}{MDP Formulation}
   \begin{itemize}
-    \item \textbf{State:} $S_t = (X_t, t, P_t, V_t, \text{imbalance}, \text{depth})$
-    \item \textbf{Action:} $a_t \in [0, X_t]$
-    \item \textbf{Inventory Dynamics:} $X_{t+1} = X_t - a_t$ (Simple conservation of shares)
-    \item \textbf{Price Impact Model:} $P_{t+1} = P_t - \eta a_t + \epsilon_t$
-    \begin{itemize}
-      \item $\eta$: market impact coefficient
-      \item $\epsilon_t$: noise
-    \end{itemize}
-    \item \textbf{Reward Function:} $r_t = -C_t - \lambda_1 (a_t - a_t^{VWAP})^2 - \lambda_2 \psi_t$
-    \begin{itemize}
-      \item Cost + VWAP deviation + risk penalty
-    \end{itemize}
+    \item \textbf{State:} $S_t = (q_t/Q,\; \tilde{s}_t,\; t/T,\; \text{imbalance}_t,\; \text{depth}_t)$ — 5 continuous features
+    \item \textbf{Action:} $a_t \in \{0\%,\,10\%,\ldots,100\%\}$ of remaining inventory $q_t$
+    \item \textbf{Inventory Dynamics:} $q_{t+1} = q_t - a_t$
+    \item \textbf{Reward} (execution quality in bps):
+    $$r_t = \frac{\bar{p}_t^{\text{exec}} - p_t^{\text{mid}}}{p_0^{\text{mid}}} \times 10^4$$
+    \item \textbf{Terminal penalty:} unexecuted shares dumped at 1.5\% discount
+    \item \textbf{Market impact:} LOB sweep (temporary) + Almgren-Chriss (permanent):
+    $$\Delta p_t^{\text{perm}} = \gamma\, a_t, \quad \gamma = 2\times 10^{-5}$$
   \end{itemize}
 \end{frame}
 
@@ -597,7 +593,7 @@
             \item[\checkmark] Risk-sensitive RL insufficient
             \item[\checkmark] CVaR-RL is next step
             \item[\checkmark] Shen (2014) replicated with GPU DQN on 112 stocks
-             \item[\checkmark] RA vs RN: $\mathbf{-71}$~\textbf{bps CVaR$_{95}$}
+             \item[\checkmark] RA vs RN CVaR: $\mathbf{+70.9}$~bps (RA worse — proxy fails)
             \item[\checkmark] Both DQN agents beat VWAP in \textbf{81\%} of episodes
             \item[\checkmark] Continuous state outperforms 23-dim one-hot
              \item[\checkmark] Parallel RA+RN training on single GPU
@@ -622,9 +618,9 @@
 
       \bigskip
       \begin{alertblock}{Main takeaway}
-        Risk-averse RL reduces tail execution cost
-        by \textbf{71 bps CVaR$_{95}$} vs risk-neutral RL —
-        correct tradeoff for CVaR-constrained institutions.
+        TD-error utility \emph{fails} to reduce CVaR on real LOB data.
+        Both DQN agents beat VWAP on mean cost (\textbf{81\%} of episodes).
+        Direct tail optimisation (QR-DQN) is the necessary next step.
       \end{alertblock}
     \end{column}
   \end{columns}

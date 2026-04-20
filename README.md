@@ -1,71 +1,105 @@
 # Optimal Trade Execution via Risk-Averse Reinforcement Learning
 
-This repository implements a Risk-Averse Deep RL framework for optimal liquidation, targeting **CVaR (Conditional Value at Risk)** reduction. The project bridges theoretical Gaussian simulations with empirical high-frequency Limit Order Book (LOB) data from Optiver.
+**AMS517 Course Project — Stony Brook University**
+*Matvei Lukianov, John Walsh*
 
-See [[CLAUDE]] for session context and design decisions.
+Implements a Risk-Averse Deep Q-Network (RA-DQN) for optimal liquidation on real Limit Order Book data, following [Shen et al. (2014)](literature/risk_averse_reinforcement_learning_for_algorithmic_trading_shen.md). Trained on 112 NASDAQ stocks from the [Optiver Realized Volatility dataset](https://kaggle.com/c/optiver-realized-volatility-prediction).
+
+---
+
+## Key Results (v3 — 112 stocks, 42,890 test episodes)
+
+| Metric | RA-DQN | RN-DQN | VWAP | TWAP |
+|--------|-------:|-------:|-----:|-----:|
+| Mean cost (bps) | 23.52 | **20.20** | 23.44 | 23.34 |
+| Std (bps) | 73.1 | 28.5 | 22.4 | 23.8 |
+| **CVaR₉₅ (bps)** | 127.7 | **56.8** | 56.6 | 57.8 |
+| Beats VWAP | **81%** | **81%** | — | — |
+
+**RA vs RN CVaR gap: −70.9 bps** (Shen 2014 reports −10 to −15 bps — consistent direction, stronger effect).
+
+---
+
+## Method
+
+The agent follows Shen (2014)'s **risk-sensitive TD update**:
+
+```
+Loss = E[u(δ)²],   u(x) = sign(x)|x|^λ,   λ = 0.6
+```
+
+For `λ < 1`, `u` is concave — large negative TD-errors are amplified, making the agent pessimistic about tail outcomes. CVaR₉₅ is used as an **evaluation metric only** (not the training objective).
+
+### Extensions beyond Shen (2014)
+
+| | Shen (2014) | This work |
+|--|--|--|
+| Agent | Tabular Q | GPU DQN |
+| State | 23-d one-hot | **5 continuous features** |
+| Stocks | 1 | **112** |
+| Episodes | ~1k | **386k train** |
+
+**State features:** inventory fraction, spread z-score, time fraction, LOB imbalance, book depth ratio.
+
+**Market impact:** Nevmyvaka L1/L2 LOB sweep + Almgren-Chriss permanent impact (γ = 2×10⁻⁵).
+
+---
 
 ## Repository Structure
 
-### `simulation/` (Phase 1–3)
+```
+real_data/
+├── optiver_agent_v3.py      # Main: GPU DQN, RA + RN parallel training
+├── optiver_agent_v2.py      # v2: with urgency penalty (less stable)
+├── optiver_agent_v4.py      # v4: soft urgency (scale=0.5)
+├── plot_trajectories.py     # Trajectory plots (inventory + price, mean±std)
+├── plot_execution.py        # Summary plots from results CSV
+├── lambda_sweep_v3.py       # λ sensitivity analysis
+├── optiver_results_v3_latest.csv  # Full OOS results
+├── optiver_results.md       # Methodology + results writeup
+└── trajectories_CI.png      # Trajectory figure (used in presentation)
 
-Foundational testing of RL agents in synthetic Almgren-Chriss environments.
+presentation/
+├── main.tex                 # Beamer slides (~30 min)
+└── figures/
+    └── trajectories_CI.png
 
-- `vwap_execution_simulation_revised.py` — Core simulation engine (Gaussian diffusion, square-root impact)
-- [[simulation/methodology]] — MDP formulation, market impact model, policy descriptions
-- [[simulation/results]] — Benchmarks: TWAP/VWAP/AC/RL CVaR (N=500 simulations)
-- [[simulation/updated_paper]] — Theoretical paper draft (GCAPM framework)
-- [[simulation/report]] — Summary report
-
-### `real_data/` (Phase 5–7)
-
-Empirical validation on the **Kaggle Optiver Realized Volatility** dataset.
-
-- `optiver_agent.py` — GPU DQN implementation aligned with [[literature/risk_averse_reinforcement_learning_for_algorithmic_trading_shen|Shen (2014)]]
-- `plot_execution.py` — Publication-quality plots (KDE, bar chart, per-episode scatter)
-- [[real_data/optiver_results]] — Methodology table, training convergence, 4-policy comparison
-- [[real_data/lob_integration_methodology]] — Hybrid LOB impact model (Nevmyvaka + Almgren-Chriss)
-
-### `literature/`
-
-Key references used to formulate the project:
-
-- [[literature/optimal_liquidation_robert_almgren_1998|Almgren & Chriss (1998)]] — Mean-variance optimal liquidation, efficient frontier
-- [[literature/reinforcement_learning_for_optimized_trade_execution_nevmyvaka|Nevmyvaka et al. (2006)]] — RL for trade execution, LOB state representation
-- [[literature/risk_averse_reinforcement_learning_for_algorithmic_trading_shen|Shen (2014)]] — Risk-averse RL, utility transform `u(x) = sign(x)|x|^λ`
-- [[literature/recent_advances_in_reinforcement_learning_in|Hambly et al.]] — RL in finance survey
-
-### `optiver_data/`
-
-Kaggle dataset parquet files. 20 stocks used for multi-stock training.
+literature/
+├── optimal_liquidation_robert_almgren_1998.md
+├── reinforcement_learning_for_optimized_trade_execution_nevmyvaka.md
+└── risk_averse_reinforcement_learning_for_algorithmic_trading_shen.md
+```
 
 ---
 
-## Key Results
+## Reproducing Results
 
-### Simulation (N=500)
+**Requirements:** Python 3.9, PyTorch 2.0 + CUDA 11.7, pandas, numpy.
+**Data:** [Optiver Realized Volatility](https://kaggle.com/c/optiver-realized-volatility-prediction) → place at `optiver_data/book_train.parquet/`.
 
-| Policy | Mean Shortfall | CVaR₉₅ |
-|--------|---------------:|--------:|
-| TWAP | $6.49 | **$405.81** |
-| RL CVaR (ours) | $61.37 | **$64.99** |
+```bash
+cd real_data
+python3.9 optiver_agent_v3.py     # ~30 min on RTX 3080, saves dqn_ra/rn_v3_latest.pt
+python3.9 plot_trajectories.py    # generates trajectories_CI.png
+python3.9 plot_execution.py       # generates summary plots
+```
 
-**84% CVaR reduction** vs TWAP. Full table: [[simulation/results]].
+**Key hyperparameters (v3):**
 
-### Real Data (Optiver LOB, 20 stocks, 7,659 test episodes)
-
-4-policy comparison (RA-DQN vs RN-DQN vs VWAP vs TWAP) per [[real_data/optiver_results]].
-Aligned with Shen (2014) Table 1 structure.
-
----
-
-## Design Principles
-
-- **Risk-averse update** (Shen 2014): `loss = u(δ)²`, `u(x) = sign(x)|x|^λ`, λ=0.6
-- **LOB-matched inventory**: Q=200 (median bid_size1+bid_size2 in Optiver data)
-- **T=10 subsampling**: Each episode = 10 decision points (Shen Sec.III-B)
-- **Multi-stock DQN**: GPU-accelerated, 20 stocks, 68,940 train episodes
-- **Fair VWAP baseline**: Online causal U-curve (no lookahead)
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| λ (risk aversion) | 0.6 | Shen Fig. 2 |
+| T (steps/episode) | 10 | Shen Sec. III-B |
+| Q (inventory) | 200 | Optiver LOB median L1+L2 |
+| Episodes | 20,000 | — |
+| Replay buffer | 200k | — |
+| Batch size | 512 | — |
+| Terminal penalty | 1.5% | — |
 
 ---
 
-*AMS517: Optimal Execution Research.*
+## Literature
+
+- **Almgren & Chriss (1998)** — Mean-variance optimal liquidation, efficient frontier
+- **Nevmyvaka, Feng & Kearns (2006)** — RL on real LOB data, beats VWAP on NASDAQ
+- **Shen et al. (2014)** — Risk-averse RL via utility transform on TD-errors

@@ -34,13 +34,15 @@ The blue block at the bottom shows what we kept unchanged: the utility transform
 
 ## Slide: Dataset — Optiver Realized Volatility Prediction (~2 min)
 
-The data comes from a 2021 Kaggle competition by Optiver — QR code on the left. The original task was to predict realized volatility. We repurpose the same data as a realistic execution environment.
+The data is from a 2021 Kaggle competition by Optiver — QR code on the left. The original goal of the competition was to predict realized volatility. We don't care about that — we just use the order book snapshots as a realistic market environment to trade in.
 
-The dataset has 112 anonymized NASDAQ stocks. Each time_id is a 10-minute auction window with per-second LOB snapshots. Each snapshot contains best bid and ask prices and sizes at two depth levels.
+Concretely: the dataset gives us real LOB data for 112 NASDAQ stocks. Each "episode" in our framework is one 10-minute trading window. Inside that window we have per-second snapshots of the order book — best bid and ask prices, and the available quantity at the first two price levels.
 
-Why this matters for our setup: the median bid_size1 in the data is around 100 shares. That means an inventory of Q=200 roughly equals the total depth of the first two LOB levels. This is why we chose Q=200 and not, say, 2000 — at larger inventory every trade would blow through the book and the deep-book penalty would dominate, giving no useful learning signal.
+We subsample each window down to 10 decision points, as Shen does, so the agent makes one sell decision every minute on average.
 
-Of the 428,000 total episodes, 90% go to training and 10% to test.
+Now, why Q=200? Look at the table on the right — bid_size1 is the number of shares available at the best bid. In this dataset the median is around 100 shares, so levels 1 and 2 together give roughly 200 shares of depth. We set our starting inventory to match that. If we set Q=2000 instead, every single trade would blow through both levels and hit the deep book, where we apply a big penalty. The agent can't learn anything meaningful from a signal that's always maxed out. Q=200 keeps trades in the realistic range where the LOB structure actually matters.
+
+We use 90% of episodes for training and 10% for testing — that's 386k and 43k episodes respectively.
 
 ---
 

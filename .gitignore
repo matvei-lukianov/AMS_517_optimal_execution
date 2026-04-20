@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+
+# Local tools
+.pdf_tools/
+.claude/
+.codex/
+
+# Optiver dataset (large, not for git)
+optiver_data/
+
+# Model weights (large binaries — use Git LFS if needed)
+real_data/*.pt
+
+# Training logs and intermediate files
+real_data/*.log
+real_data/rl_traj.npy
+real_data/vwap_traj.npy
+
+# Simulation section (not included in repo)
+simulation/
+
+# Misc
+*.pdf
+ABIDES_MARL_Slides.pdf
+2511.02016v1.pdf

@@ -84,8 +84,10 @@ This is the key honest result of the paper: the TD-error utility trick — repla
 
 ## Slide: Summary & Future Work (~1.5 min)
 
-To summarize. We replicated Shen (2014) on real data with three extensions: GPU DQN on 112 stocks, continuous state, parallel training. Both RL agents beat VWAP in 81% of episodes and the mean cost improvement is statistically significant.
+To summarize. We extended Shen (2014) to real LOB data: GPU DQN instead of tabular Q, 112 stocks, continuous state, parallel training.
 
-The key limitation: we're optimizing a surrogate through TD-error utility, not the tail of the return distribution directly. CVaR here is a metric, not an objective.
+On mean cost, the results are positive: both RL agents beat VWAP in 81% of episodes, and RN-DQN's 14% improvement is statistically significant at 13 standard errors.
 
-Four directions forward. Most important is QR-DQN or IQN, where the agent explicitly models the return distribution and can optimize CVaR directly. Second, multiple random seeds for proper confidence intervals. Third, actor-critic with continuous action space. Fourth, a richer state: realized volatility, multi-level imbalance, implied vol.
+On CVaR, the results are honest and negative: RA-DQN is +70.9 bps worse than RN-DQN, opposite to what Shen reports. The TD-error utility proxy does not translate to tail improvement on real data. That's not a failure of the project — it's the main finding: the surrogate is insufficient, and direct tail optimization via distributional RL is the necessary next step.
+
+Four directions forward: QR-DQN/IQN for direct CVaR optimization, multiple seeds for confidence intervals, actor-critic with continuous actions, and a richer state including realized volatility and multi-level imbalance.

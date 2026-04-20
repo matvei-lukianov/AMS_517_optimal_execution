@@ -1,4 +1,44 @@
-# Speaker Notes — Risk-Averse DQN onwards (~15 min)
+# Speaker Notes — MDP Formulation onwards (~20 min)
+
+---
+
+## Slide: MDP Formulation (~1.5 min)
+
+Let me walk through how we formalize the execution problem as a Markov Decision Process.
+
+The state has 5 continuous features: inventory fraction — how much we still need to sell — normalized spread z-score, time fraction into the episode, LOB imbalance between bid and ask size at level 1, and book depth ratio. All five are observable from the LOB at each step.
+
+The action space is discrete: the agent picks what fraction of remaining inventory to sell at each step — 0%, 10%, up to 100%. That gives 11 actions.
+
+Reward is execution quality in basis points: the difference between the price we actually got and the current mid-price, normalized by the initial mid. Positive means we sold above mid — good. Negative means we sold below — bad.
+
+Market impact has two components. Temporary impact is the LOB sweep from Nevmyvaka: we fill at level 1 first, then spill to level 2 if needed, then hit the deep book with a penalty. Permanent impact follows Almgren-Chriss: each share sold permanently depresses the price by γ=2×10⁻⁵, cumulating across the episode.
+
+At the end of the episode, any unsold inventory gets dumped at a 1.5% discount. This terminal penalty is critical — without it the agent would just wait and never sell.
+
+---
+
+## Slide: Optiver MDP Implementation Details (~1.5 min)
+
+This slide makes the state concrete. The five features are all computed directly from the LOB snapshot at each decision point.
+
+Inventory fraction is just how much we have left relative to Q=200. Spread is normalized by its training-set mean and standard deviation — so it's a z-score, comparable across different stocks. Time fraction is where we are in the 10-step episode. Imbalance is bid_size1 divided by the total of bid and ask at level 1 — values above 0.5 mean more buying pressure on the bid side. Depth is the size ratio between level 2 and level 1 — tells us how much liquidity sits behind the best bid.
+
+On the right — the LOB sweep execution. If we sell q shares: first we take what's available at bid_price1, up to bid_size1. If there's leftover, we spill into level 2 at bid_price2. Anything beyond that hits the deep book with a 5% penalty proportional to how badly we overshot.
+
+The episode is a 10-minute Optiver window, subsampled to 10 evenly-spaced snapshots — one decision per minute on average, following Shen's Section III-B.
+
+---
+
+## Slide: Bellman Equations (~1 min)
+
+This slide connects our setup to the standard RL theory.
+
+The standard Bellman equation says the value of a state equals the best immediate reward plus the discounted expected value of the next state. This is the core of Q-learning — we're trying to find Q(s,a) that satisfies this recursion.
+
+For the risk-sensitive version, Shen replaces the expectation with a risk functional ρ. In general this could be CVaR, variance, or any coherent risk measure. In Shen's specific formulation, ρ is implicitly defined through the utility transform on the TD-error — not through explicit CVaR in the Bellman equation. That distinction is important: modifying the TD-error is not the same as optimizing a risk measure in the Bellman sense.
+
+The sample path perspective at the bottom is the key intuition behind RL for execution: instead of solving for an optimal deterministic schedule analytically like Almgren-Chriss, we learn from realized market trajectories. The policy adapts to what the LOB actually showed, not to a model of what it might show.
 
 ---
 

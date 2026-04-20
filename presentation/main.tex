@@ -45,6 +45,7 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepackage{microtype}
+\usepackage{qrcode}
 
 \title[Risk-Averse RL for Trade Execution]{%
   Optimal Trade Execution\\[4pt]
@@ -419,13 +420,12 @@
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       \begin{block}{Kaggle Competition (2021)}
-        \small
-        \texttt{kaggle.com/c/}\\
-        \texttt{optiver-realized-volatility-prediction}\\[6pt]
-        Goal: predict short-term realized volatility\\
-        from LOB snapshots.\\[4pt]
-        We \emph{repurpose} the LOB data as a\\
-        realistic execution environment.
+        \begin{center}
+          \qrcode[height=2cm]{https://kaggle.com/c/optiver-realized-volatility-prediction}
+
+          \vspace{0.3cm}
+          \scriptsize Scan for Kaggle dataset
+        \end{center}
       \end{block}
 
       \medskip
@@ -596,7 +596,7 @@
 
       \bigskip
       \textbf{Key limitation:}\\
-      CVaR is \textbf{evaluation metric}, not objective.
+      CVaR is \textbf{evaluation metric}, not training objective.
     \end{column}
     \begin{column}{0.46\textwidth}
       \textbf{Future work:}
@@ -647,11 +647,11 @@
   {\large Questions?}\\[20pt]
 
   \begin{columns}[c]
-    \begin{column}{0.30\textwidth}
+    \begin{column}{0.28\textwidth}
       \centering
       \qrcode[height=3cm]{https://github.com/matvei-lukianov/AMS_517_optimal_execution}
     \end{column}
-    \begin{column}{0.65\textwidth}
+    \begin{column}{0.68\textwidth}
       \footnotesize
       \textbf{Code \& Results:}\\[4pt]
       \texttt{github.com/matvei-lukianov/}\\

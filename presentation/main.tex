@@ -562,10 +562,11 @@
 
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{RA vs RN — the Shen effect}
-        $$\Delta\text{CVaR}_{95} = 56.8 - 127.7 = \mathbf{-70.9}\text{ bps}$$
-        Shen (2014) reports $-10$ to $-15$ bps.\\
-        We observe stronger effect — consistent direction.
+      \begin{block}{RA vs RN — opposite to Shen}
+        $$\Delta\text{CVaR}_{95} = 127.7 - 56.8 = \mathbf{+70.9}\text{ bps}$$
+        Shen (2014): RA \emph{reduces} CVaR by $10$--$15$ bps vs RN.\\
+        We find RA \alert{worse} — TD-error proxy insufficient\\
+        on real LOB data $\Rightarrow$ motivates distributional RL.
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}

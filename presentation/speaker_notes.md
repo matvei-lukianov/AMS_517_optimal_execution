@@ -74,9 +74,11 @@ Now the numbers. 112 stocks, 42,890 test episodes.
 
 On mean cost, RN-DQN is the best: 20.2 basis points versus 23.4 for VWAP — a 14% reduction. The standard error here is 0.14 versus 0.11, so the gap is roughly 13 standard errors — statistically unambiguous. Both RL agents beat VWAP in 81% of episodes.
 
-On CVaR₉₅ — the average cost in the worst 5% of outcomes — the picture is more nuanced. RN-DQN and VWAP are almost identical: 56.8 versus 56.6. RA-DQN shows 127.7. The RA vs RN gap is minus 70.9 basis points — in the wrong direction for RA.
+On CVaR₉₅ — the average cost in the worst 5% of outcomes — the picture is more troubling. RN-DQN and VWAP are almost identical: 56.8 versus 56.6. RA-DQN shows 127.7. So RA is actually **worse** than RN by +70.9 bps.
 
-This is the key tension in our results. Shen reports a gap of −10 to −15 bps with RA having lower CVaR. The direction of the effect is consistent, but the magnitude and sign here tell us that the TD-error utility proxy doesn't translate cleanly into tail improvement on real LOB data. That's precisely the motivation for distributional RL as a next step.
+This is the opposite of what Shen finds. In the paper, the risk-averse agent reduces CVaR by 10 to 15 bps relative to the risk-neutral one. We get the reverse. The direction is wrong, not just the magnitude.
+
+This is the key honest result of the paper: the TD-error utility trick — replacing δ with u(δ) — does not translate into actual tail improvement on real LOB data. It's a surrogate, and on this dataset it misfires. That's precisely what motivates distributional RL as the next step: QR-DQN or IQN would optimize the return distribution directly, not through a proxy.
 
 ---
 

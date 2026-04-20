@@ -10,7 +10,11 @@ In standard DQN we minimize the squared TD-error: L = E[δ²]. This is a risk-ne
 
 Shen's idea is to replace δ with u(δ), where u(x) = sign(x)·|x|^λ. So instead of minimizing δ², we minimize u(δ)².
 
-Look at the plot on the right. At λ=1 this is just the identity — the standard case. At λ=0.6, the blue curve, the function becomes **concave**. What this means in practice: large negative TD-errors — when the agent was wrong in the bad direction — are now **penalized more heavily** than in the neutral case. Positive errors are compressed. The agent develops an asymmetric fear of bad outcomes.
+Key observation: u(δ)² = |δ|^(2λ) — the sign cancels out. The loss is **symmetric** in δ. There is no downside asymmetry in the strict sense.
+
+What λ=0.6 actually does: it makes the loss sub-quadratic. For large |δ| — whether positive or negative — the penalty grows slower than quadratic. For small |δ|, near zero, the gradient is actually larger than in the standard case. Look at the plot: the blue curve is steeper near zero and flatter at the extremes compared to the red line.
+
+The consequence for Q-values: extreme TD-errors in either direction get compressed. Large positive experiences don't inflate Q-values as aggressively. The agent ends up with more **conservative, pessimistic estimates** — it doesn't get over-excited by lucky episodes. That conservatism is the mechanism behind the risk-averse behavior.
 
 One important clarification, highlighted in the red box: CVaR₉₅ in our work is an **evaluation metric, not the training objective**. The utility transform acts on TD-errors inside Q-learning, not on the return distribution directly. Direct tail optimization would require distributional RL — that's future work.
 

@@ -317,9 +317,11 @@
 
       \textbf{Why $\lambda{=}0.6<1$ is risk-averse:}
       \begin{itemize}
-        \item $u$ is \emph{concave}: large \alert{negative} $\delta$
-              amplified $\to$ agent strongly avoids bad outcomes
-        \item Value function turns pessimistic about the tail
+        \item $u(\delta)^2 = |\delta|^{2\lambda}$ — sub-quadratic,\\
+              sign cancels: \alert{symmetric} compression
+        \item Large $|\delta|$ dampened; small $|\delta|$ amplified
+        \item Q-values not inflated by outlier episodes\\
+              $\Rightarrow$ \emph{conservative, pessimistic} estimates
       \end{itemize}
 
       \begin{alertblock}{CVaR is evaluation only}
@@ -348,7 +350,7 @@
 
       \smallskip
       \footnotesize
-      For $\lambda<1$: concavity of $u(x)=\operatorname{sgn}(x)|x|^\lambda$ amplifies negative TD-errors and compresses positive ones $\Rightarrow$ asymmetric penalty on downside
+      $u(\delta)^2 = |\delta|^{2\lambda}$: sub-quadratic loss compresses large errors symmetrically $\Rightarrow$ conservative Q-values, not downside asymmetry
     \end{column}
   \end{columns}
 \end{frame}
